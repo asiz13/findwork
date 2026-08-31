@@ -1,14 +1,26 @@
 {
-  "generatedAt": "2026-09-01T00:00:00+08:00",
-  "notice": "以下为武汉地区官方招聘入口的待核验起始数据。执行 update_dashboard.ps1 导入已核验 JSON 后，页面会自动重生成；未公布截止时间保持为空，不要编造。",
-  "records": [
-    { "id": "source-sasac-2027", "unit": "国务院国资委人事招聘专栏", "project": "2027届校园招聘信息入口 · 武汉岗位检索", "category": "央企综合", "batch": "2027届秋招", "deadline": "", "source": "国务院国资委", "publishedAt": "", "url": "http://www.sasac.gov.cn/n2588035/n2588320/index.html", "location": "武汉", "verified": false },
-    { "id": "source-cjob-2027", "unit": "中国公共招聘网", "project": "2027届校园招聘信息入口 · 武汉岗位检索", "category": "央企综合", "batch": "2027届秋招", "deadline": "", "source": "中国公共招聘网", "publishedAt": "", "url": "https://job.mohrss.gov.cn/", "location": "武汉", "verified": false },
-    { "id": "source-guopin-2027", "unit": "国聘网", "project": "2027届校园招聘信息入口 · 武汉岗位检索", "category": "央企综合", "batch": "2027届秋招", "deadline": "", "source": "国聘网", "publishedAt": "", "url": "https://www.guopinwang.com/", "location": "武汉", "verified": false },
-    { "id": "source-crec4-2027", "unit": "中铁大桥局集团有限公司", "project": "2027届校园招聘入口 · 工程技术 / 职能管理", "category": "基建交通", "batch": "2027届秋招", "deadline": "", "source": "中铁大桥局集团官网", "publishedAt": "", "url": "https://www.crec4.com/", "location": "武汉", "verified": false },
-    { "id": "source-cccc4-2027", "unit": "中交第二航务工程局有限公司", "project": "2027届校园招聘入口 · 工程技术 / 项目管理", "category": "基建交通", "batch": "2027届秋招", "deadline": "", "source": "中交二航局官网", "publishedAt": "", "url": "https://www.cccc4.com/", "location": "武汉", "verified": false },
-    { "id": "source-cfmcc-2027", "unit": "中国一冶集团有限公司", "project": "2027届校园招聘入口 · 工程管理 / 技术研发", "category": "基建制造", "batch": "2027届秋招", "deadline": "", "source": "中国一冶集团官网", "publishedAt": "", "url": "https://www.cfmcc.com/", "location": "武汉", "verified": false },
-    { "id": "source-hepdi-2027", "unit": "中国电建集团湖北省电力勘测设计研究院有限公司", "project": "2027届校园招聘入口 · 电力设计 / 数字化", "category": "能源电力", "batch": "2027届秋招", "deadline": "", "source": "湖北院官网", "publishedAt": "", "url": "https://www.hepdi.com.cn/", "location": "武汉", "verified": false },
-    { "id": "source-whrt-2027", "unit": "武汉地铁集团有限公司", "project": "2027届校园招聘入口 · 运营 / 工程 / 职能", "category": "城市运营", "batch": "2027届秋招", "deadline": "", "source": "武汉地铁集团官网", "publishedAt": "", "url": "https://www.whrt.gov.cn/", "location": "武汉", "verified": false }
-  ]
+    "generatedAt":  "2026-09-01T07:52:23.1969068+08:00",
+    "scope":  "全国",
+    "notice":  "全国秋招记录：有明确公司名且公告含 2027 届校园/秋招语义即可保留；岗位明细可为空并标记为招聘公告。社会招聘、社招、实习和无法识别公司的泛入口不进入记录。专业、城市、学历、报名起止和工资仅在原公告明确时填写。",
+    "records":  [
+                    {
+                        "id":  "job-e398a6c55f2e4096b62ed9f7e7d75315",
+                        "company":  "华为技术有限公司",
+                        "position":  "",
+                        "recordType":  "招聘公告",
+                        "major":  "",
+                        "city":  "",
+                        "category":  "民企",
+                        "education":  "",
+                        "startDate":  "",
+                        "deadline":  "",
+                        "salaryText":  "",
+                        "salaryMin":  null,
+                        "source":  "huawei.com",
+                        "publishedAt":  "",
+                        "url":  "https://career.huawei.com/cn/news-and-updates/fresh-graduate-of-2027",
+                        "verified":  true,
+                        "sourceType":  "company-official"
+                    }
+                ]
 }

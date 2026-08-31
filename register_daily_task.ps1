@@ -3,7 +3,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$script = Join-Path $PSScriptRoot 'collect_wuhan_jobs.ps1'
+$script = Join-Path $PSScriptRoot 'collect_jobs.ps1'
 $html = (Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.html' -File | Select-Object -First 1).FullName
 $action = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$script`""
 
