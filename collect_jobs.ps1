@@ -38,6 +38,41 @@ $sources = @(
   @{ Company='西门子（中国）有限公司'; Type='外企'; Domain='siemens.com.cn'; Home='https://www.siemens.com/cn/zh/company/jobs.html' },
   @{ Company='博世（中国）投资有限公司'; Type='外企'; Domain='bosch.com.cn'; Home='https://www.bosch.com.cn/careers/' },
   @{ Company='施耐德电气（中国）有限公司'; Type='外企'; Domain='se.com'; Home='https://www.se.com/cn/zh/about-us/careers/' }
+  ,@{ Company='银行招聘网'; Type='行业渠道'; Domain='yinhangzhaopin.com'; Home='http://www.yinhangzhaopin.com/'; SourceType='channel' }
+  ,@{ Company='医药英才网'; Type='行业渠道'; Domain='healthr.com'; Home='https://www.healthr.com/'; SourceType='channel' }
+  ,@{ Company='中国汽车人才网'; Type='行业渠道'; Domain='carjob.com.cn'; Home='http://www.carjob.com.cn/'; SourceType='channel' }
+  ,@{ Company='中公金融人'; Type='行业渠道'; Domain='jinrongren.net'; Home='https://m.jinrongren.net/'; SourceType='channel' }
+  ,@{ Company='北极星招聘'; Type='行业渠道'; Domain='bjx.com.cn'; Home='https://hr.bjx.com.cn/'; SourceType='channel' }
+  ,@{ Company='浙江人才网'; Type='地方渠道'; Domain='zjrc.com'; Home='https://www.zjrc.com/'; SourceType='channel' }
+  ,@{ Company='山东人才网'; Type='地方渠道'; Domain='sdrc.com.cn'; Home='https://sdrc.com.cn/'; SourceType='channel' }
+  ,@{ Company='四川人才网'; Type='地方渠道'; Domain='scrc168.com'; Home='https://www.scrc168.com/'; SourceType='channel' }
+  ,@{ Company='广西人才网'; Type='地方渠道'; Domain='gxrc.com'; Home='https://www.gxrc.com/'; SourceType='channel' }
+  ,@{ Company='应届生求职网'; Type='综合渠道'; Domain='yingjiesheng.com'; Home='https://www.yingjiesheng.com/'; SourceType='channel' }
+  ,@{ Company='前程无忧'; Type='综合渠道'; Domain='51job.com'; Home='https://www.51job.com/'; SourceType='channel' }
+  ,@{ Company='BOSS直聘'; Type='综合渠道'; Domain='zhipin.com'; Home='https://www.zhipin.com/'; SourceType='channel' }
+  ,@{ Company='智联招聘'; Type='综合渠道'; Domain='zhaopin.com'; Home='https://www.zhaopin.com/'; SourceType='channel' }
+  ,@{ Company='实习僧'; Type='综合渠道'; Domain='shixiseng.com'; Home='https://www.shixiseng.com/'; SourceType='channel' }
+  ,@{ Company='猎聘'; Type='综合渠道'; Domain='liepin.com'; Home='https://www.liepin.com/'; SourceType='channel' }
+  ,@{ Company='拉勾网'; Type='综合渠道'; Domain='lagou.com'; Home='https://www.lagou.com/'; SourceType='channel' }
+  ,@{ Company='牛客网'; Type='求职社区'; Domain='nowcoder.com'; Home='https://www.nowcoder.com/'; SourceType='channel' }
+  ,@{ Company='海投网'; Type='综合渠道'; Domain='haitou.cc'; Home='https://www.haitou.cc/'; SourceType='channel' }
+  ,@{ Company='刺猬实习'; Type='求职社区'; Domain='ciwei.net'; Home='https://www.ciwei.net/'; SourceType='channel' }
+  ,@{ Company='国家公务员局'; Type='政府渠道'; Domain='scs.gov.cn'; Home='http://www.scs.gov.cn/'; SourceType='channel' }
+  ,@{ Company='高校人才网'; Type='高校渠道'; Domain='gaoxiaojob.com'; Home='https://www.gaoxiaojob.com/'; SourceType='channel' }
+  ,@{ Company='国聘网'; Type='政府渠道'; Domain='iguopin.com'; Home='https://www.iguopin.com/'; SourceType='channel' }
+  ,@{ Company='24365国家大学生就业服务平台'; Type='政府渠道'; Domain='ncss.cn'; Home='https://job.ncss.cn/'; SourceType='channel' }
+  ,@{ Company='中智招聘'; Type='央国企渠道'; Domain='ciicsjob.com'; Home='https://www.ciicsjob.com/'; SourceType='channel' }
+  ,@{ Company='中国烟草招聘系统'; Type='政府渠道'; Domain='tobacco.gov.cn'; Home='http://www.tobacco.gov.cn/'; SourceType='channel' }
+  ,@{ Company='宝洁（中国）有限公司'; Type='外企'; Domain='pgcareers.com'; Home='https://www.pgcareers.com/' }
+  ,@{ Company='LinkedIn'; Type='综合渠道'; Domain='linkedin.com'; Home='https://www.linkedin.com/jobs/' ; SourceType='channel' }
+  ,@{ Company='Indeed'; Type='综合渠道'; Domain='indeed.com'; Home='https://www.indeed.com/' ; SourceType='channel' }
+  ,@{ Company='德科招聘'; Type='综合渠道'; Domain='fescod.com'; Home='https://www.fescod.com/' ; SourceType='channel' }
+  ,@{ Company='就业在线'; Type='政府渠道'; Domain='jobonline.cn'; Home='https://www.jobonline.cn/' ; SourceType='channel' }
+  ,@{ Company='北京人才网'; Type='地方渠道'; Domain='bjrc.com.cn'; Home='http://www.bjrc.com.cn/' ; SourceType='channel' }
+  ,@{ Company='上海外服'; Type='地方渠道'; Domain='fsq.com.cn'; Home='https://www.fsg.com.cn/' ; SourceType='channel' }
+  ,@{ Company='广东人才网'; Type='地方渠道'; Domain='gdrc.com'; Home='https://www.gdrc.com/' ; SourceType='channel' }
+  ,@{ Company='赛氪网'; Type='求职社区'; Domain='saikr.com'; Home='https://www.saikr.com/' ; SourceType='channel' }
+  ,@{ Company='脉脉'; Type='求职社区'; Domain='maimai.cn'; Home='https://maimai.cn/' ; SourceType='channel' }
 )
 
 function Get-CleanText([string]$html) {
@@ -52,8 +87,11 @@ function Get-Group([string]$text, [string]$pattern) {
 }
 
 function Get-City([string]$text) {
-  foreach ($city in $cities) { if ($text -match [regex]::Escape($city)) { return $city } }
-  foreach ($province in $provinces) { if ($text -match [regex]::Escape($province)) { return $province } }
+  $explicit = Get-Group $text '(?:工作地点|工作城市|招聘城市|工作地|任职地点|就业地点)[：: ]{0,3}([^。；;，,\s]{2,20})'
+  if ($explicit) {
+    foreach ($city in $cities) { if ($explicit -match [regex]::Escape($city)) { return $city } }
+    foreach ($province in $provinces) { if ($explicit -match [regex]::Escape($province)) { return $province } }
+  }
   return ''
 }
 
@@ -65,9 +103,7 @@ function Get-Major([string]$text) {
 }
 
 function Get-Education([string]$text) {
-  $hit = @('博士','硕士研究生','研究生','本科','大专','专科') | Where-Object { $text -match $_ }
-  if ($hit.Count) { return ($hit -join ' / ') }
-  return Get-Group $text '(本科及以上|硕士及以上|研究生及以上|大专及以上)'
+  return Get-Group $text '(?:学历要求|学历条件|学历)[：: ]{0,3}([^。；;]{2,40})'
 }
 
 function Get-Salary([string]$text) {
@@ -99,17 +135,31 @@ function Get-JobTitle([string]$title, [string]$text) {
   return $fromText
 }
 
+function Get-Company([string]$title, [string]$text, $source) {
+  if ($source.SourceType -ne 'channel') { return $source.Company }
+  $combined = "$title $text"
+  $name = Get-Group $combined '(?:公司名称|单位名称|招聘单位|招聘企业|企业名称)[：: ]{0,3}([^。；;，,]{2,60})'
+  if (!$name) { $name = Get-Group $title '(?:^|[【\[])([^【】\[\]｜|—-]{2,45})(?:招聘|校招|校园招聘|秋招)' }
+  if (!$name) { $name = Get-Group $title '([^｜|—-]{2,45})(?:2027|2027届)' }
+  $name = ($name -replace '^\s*广告\s*','' -replace '(?:2027|2027届|27届|2026|2026届|校园招聘|校招|秋招).*$','').Trim()
+  if ($name -and $name.Length -ge 3 -and $name -notmatch '招聘网|人才网|直聘|招聘平台|求职网|海外优青|银行$' -and $name -match '公司|集团|科技|物流|电子|汽车|能源|通信|建设|工程|医药|学院|大学|医院|制造|化工|机械|电气|股份|投资|外服|人寿|证券|基金|保险|地产|物业|旅游|邮') { return $name }
+  return ''
+}
+
 function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]$text, [bool]$verified) {
   if (!$text -or $text -match $exclude -or $text -notmatch '2027|2027届' -or $text -notmatch $include) { return }
-  $position = Get-JobTitle $title $text
+  if ($source.SourceType -eq 'channel' -and "$title $url" -notmatch '2027|27届|秋招|校招|校园') { return }
+  $position = if ($source.SourceType -eq 'channel') { Get-Group $text '(?:岗位名称|招聘岗位|职位名称)[：: ]{0,3}([^。；;]{2,60})' } else { Get-JobTitle $title $text }
   if ($position -and $position.Length -lt 2) { $position = '' }
   $salary = Get-Salary $text
   $start = Get-Group $text '(?:报名开始|开始报名|网申开始|投递开始)[：: ]{0,3}(20\d{2}[年./-]\d{1,2}[月./-]\d{1,2}日?)'
   $end = Get-Group $text '(?:报名截止|截止时间|网申截止|投递截止)[：: ]{0,3}(20\d{2}[年./-]\d{1,2}[月./-]\d{1,2}日?)'
   $published = Get-Group $text '(?:发布时间|发布日期|公告日期|发布于)[：: ]{0,3}(20\d{2}[年./-]\d{1,2}[月./-]\d{1,2}日?)'
+  $company = Get-Company $title $text $source
+  if (!$company) { return }
   $record = [pscustomobject]@{
     id = 'job-' + ([guid]::NewGuid().ToString('N'))
-    company = $source.Company
+    company = $company
     position = $position
     recordType = if ($position) { '岗位明细' } else { '招聘公告' }
     major = Get-Major $text
@@ -124,7 +174,7 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
     publishedAt = $published
     url = $url
     verified = $verified
-    sourceType = 'company-official'
+    sourceType = if ($source.SourceType) { $source.SourceType } else { 'company-official' }
   }
   if ($record.company) { [void]$list.Add($record) }
 }
@@ -132,7 +182,7 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
 $existing = [System.IO.File]::ReadAllText($DataFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 $records = [System.Collections.Generic.List[object]]::new()
 foreach ($old in @($existing.records)) {
-  if ($old.company -and $old.url -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
+  if ($old.company -and $old.url -and $old.sourceType -ne 'channel' -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
 }
 
 foreach ($source in $sources) {
@@ -168,15 +218,34 @@ foreach ($source in $sources) {
       }
     } catch { Write-Output "Skipped search: $query :: $($_.Exception.Message)" }
   }
+  if ($source.SourceType -eq 'channel') {
+    try {
+      $channel = Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $source.Home -TimeoutSec 25
+      $links = [regex]::Matches($channel.Content, '(?is)<a\b[^>]*href=["'']([^"'']+)["''][^>]*>(.*?)</a>')
+      $seenLinks = [System.Collections.Generic.HashSet[string]]::new()
+      foreach ($link in $links) {
+        $label = [regex]::Replace($link.Groups[2].Value, '<[^>]+>', ' ') -replace '\s+', ' '
+        $href = [System.Net.WebUtility]::HtmlDecode($link.Groups[1].Value)
+        if (!$href -or $href -match '^javascript:|^#' -or "$label $href" -notmatch '2027|校园招聘|秋招|校招|招聘公告|招聘启事') { continue }
+        try { $detail = ([uri]::new([uri]$source.Home, $href)).AbsoluteUri } catch { continue }
+        if (!$seenLinks.Add($detail)) { continue }
+        try {
+          $page = Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $detail -TimeoutSec 20
+          Add-DetailRecord $records $source $detail $label (Get-CleanText $page.Content) $false
+        } catch { }
+        if ($seenLinks.Count -ge 12) { break }
+      }
+    } catch { Write-Output "Skipped channel crawl: $($source.Home)" }
+  }
 }
 
 $deduped = @($records | Group-Object { "$($_.company)|$($_.position)|$($_.city)|$($_.url)" } | ForEach-Object { $_.Group[0] })
 $output = [pscustomobject]@{
   generatedAt = (Get-Date).ToString('o')
   scope = '全国'
-  notice = '全国岗位级抓取结果：仅保留具体公司和岗位，排除社会招聘、社招、实习和泛入口页；工资只在原公告明确写出时记录。'
+  notice = '全国 2027 届校园招聘抓取：保留公司名明确的岗位明细和招聘公告，岗位未公布时留空；排除社会招聘、社招、实习和兼职；工资、专业、学历、城市、起止时间只在原公告明确写出时记录。官方官网优先，渠道网站用于发现线索。'
   records = @($deduped)
 }
 [System.IO.File]::WriteAllText($DataFile, ($output | ConvertTo-Json -Depth 20), [System.Text.UTF8Encoding]::new($false))
 & (Join-Path $PSScriptRoot 'update_dashboard.ps1') -DataFile $DataFile
-Write-Output "Collected $($deduped.Count) concrete nationwide job records"
+Write-Output "Collected $($deduped.Count) nationwide records (jobs and recruitment notices)"
