@@ -1,9 +1,15 @@
 ﻿param(
-  [string]$DataFile = (Join-Path $PSScriptRoot 'recruitment_data.json')
+  [string]$DataFile = (Join-Path $PSScriptRoot 'recruitment_data.json'),
+  [switch]$RequireFeishu
 )
 
 $ErrorActionPreference = 'Stop'
 $headers = @{ 'User-Agent' = 'Mozilla/5.0 (compatible; AutumnRecruitmentWorkbench/1.0)' }
+$feishuAppId = $env:FEISHU_APP_ID
+$feishuAppSecret = $env:FEISHU_APP_SECRET
+$feishuAppToken = $env:FEISHU_APP_TOKEN
+$feishuTableId = if ($env:FEISHU_TABLE_ID) { $env:FEISHU_TABLE_ID } else { 'tbl1eASN11JYwTo8' }
+$feishuViewId = if ($env:FEISHU_VIEW_ID) { $env:FEISHU_VIEW_ID } else { 'vewJRfkcoh' }
 $include = '2027|2027届|校园招聘|秋季招聘|秋招|应届毕业生|高校毕业生|campus|graduate'
 $exclude = '社会招聘|社会人才|社招|实习|兼职|intern|social recruitment'
 $cities = @('北京','上海','广州','深圳','武汉','杭州','南京','苏州','成都','重庆','西安','天津','济南','青岛','郑州','长沙','合肥','厦门','福州','东莞','宁波','佛山','沈阳','大连','哈尔滨','长春','南昌','昆明','贵阳','太原','石家庄','南宁','海口','兰州','乌鲁木齐','呼和浩特','银川','西宁','拉萨','珠海','无锡','常州','嘉兴','绍兴','惠州','中山','温州','烟台','洛阳','襄阳','宜昌','绵阳','芜湖','赣州')
@@ -12,7 +18,6 @@ $provinces = @('北京','上海','广东','江苏','浙江','湖北','湖南','�
 # These are first-party campus/recruitment domains. Search is used only to discover
 # detail pages; the saved link always points to the company or official source page.
 $sources = @(
-  @{ Company='飞书 · 27届校招表'; Type='外部渠道'; Domain='my.feishu.cn'; Home='https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=tbl1eASN11JYwTo8&view=vewJRfkcoh'; SourceType='channel' },
   @{ Company='华为技术有限公司'; Type='民企'; Domain='huawei.com'; Home='https://career.huawei.com/' },
   @{ Company='腾讯科技（深圳）有限公司'; Type='民企'; Domain='join.qq.com'; Home='https://join.qq.com/' },
   @{ Company='字节跳动有限公司'; Type='民企'; Domain='jobs.bytedance.com'; Home='https://jobs.bytedance.com/campus/' },
@@ -139,6 +144,102 @@ function Get-StableId([string]$source, [string]$company, [string]$position, [str
   }
 }
 
+function Get-FeishuField($fields, [string[]]$names) {
+  foreach ($name in $names) {
+    $property = $fields.PSObject.Properties[$name]
+    if (!$property -or $null -eq $property.Value) { continue }
+    $value = $property.Value
+    if ($value -is [array]) {
+      $parts = @($value | ForEach-Object {
+        if ($_.PSObject.Properties['text']) { $_.text }
+        elseif ($_.PSObject.Properties['name']) { $_.name }
+        else { $_ }
+      } | Where-Object { $_ -ne $null -and "$($_)" -ne '' })
+      if ($parts.Count) { return ($parts -join '、').Trim() }
+    } elseif ($value.PSObject.Properties['text']) {
+      return "$($value.text)".Trim()
+    } elseif ($value.PSObject.Properties['name']) {
+      return "$($value.name)".Trim()
+    } else {
+      return "$value".Trim()
+    }
+  }
+  return ''
+}
+
+function Convert-FeishuDate([string]$value) {
+  if (!$value) { return '' }
+  if ($value -match '^\d{10,13}$') {
+    try {
+      $milliseconds = [int64]$value
+      if ($value.Length -eq 10) { $milliseconds *= 1000 }
+      return [DateTimeOffset]::FromUnixTimeMilliseconds($milliseconds).ToString('yyyy-MM-dd')
+    } catch { return $value }
+  }
+  try { return ([datetime]$value).ToString('yyyy-MM-dd') } catch { return $value }
+}
+
+function Get-FeishuRecords {
+  if (!$feishuAppId -or !$feishuAppSecret -or !$feishuAppToken) {
+    if ($RequireFeishu) { throw 'FEISHU_APP_ID, FEISHU_APP_SECRET and FEISHU_APP_TOKEN GitHub Secrets are required.' }
+    Write-Host 'Feishu API is not configured; continuing without Feishu records.'
+    return @()
+  }
+
+  $tokenBody = @{ app_id = $feishuAppId; app_secret = $feishuAppSecret } | ConvertTo-Json -Compress
+  $tokenResponse = Invoke-RestMethod -Method Post -Uri 'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal' -ContentType 'application/json' -Body $tokenBody
+  if ($tokenResponse.code -ne 0 -or !$tokenResponse.tenant_access_token) { throw "Feishu token request failed: $($tokenResponse.msg)" }
+  $apiHeaders = @{ Authorization = "Bearer $($tokenResponse.tenant_access_token)"; 'User-Agent' = $headers['User-Agent'] }
+  $items = [System.Collections.Generic.List[object]]::new()
+  $pageToken = ''
+  do {
+    $query = "page_size=500&view_id=$([uri]::EscapeDataString($feishuViewId))"
+    if ($pageToken) { $query += "&page_token=$([uri]::EscapeDataString($pageToken))" }
+    $uri = "https://open.feishu.cn/open-apis/bitable/v1/apps/$feishuAppToken/tables/$feishuTableId/records?$query"
+    $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $apiHeaders
+    if ($response.code -ne 0) { throw "Feishu records request failed: $($response.msg)" }
+    foreach ($item in @($response.data.items)) {
+      $fields = $item.fields
+      $company = Get-FeishuField $fields @('公司名称','公司','单位名称','招聘单位','招聘企业','企业名称')
+      if (!$company) { continue }
+      $position = Get-FeishuField $fields @('岗位名称','招聘岗位','职位名称','工作岗位','岗位')
+      $industry = Get-FeishuField $fields @('所属行业','行业','专业要求','所需专业','专业')
+      $category = Get-FeishuField $fields @('企业性质','企业类型','单位性质','类别')
+      $recordType = Get-FeishuField $fields @('招聘类型','记录类型','类型')
+      $education = Get-FeishuField $fields @('学历要求','学历','招聘对象','面向对象')
+      $city = Get-FeishuField $fields @('工作地点','工作城市','招聘城市','城市','工作地')
+      $startDate = Convert-FeishuDate (Get-FeishuField $fields @('报名开始','开始报名','网申开始','投递开始'))
+      $deadline = Convert-FeishuDate (Get-FeishuField $fields @('报名截止','截止时间','网申截止','投递截止'))
+      $publishedAt = Convert-FeishuDate (Get-FeishuField $fields @('发布时间','发布日期','公告日期','发布于'))
+      $salaryText = Get-FeishuField $fields @('工资','薪资','薪酬')
+      $salaryMin = if ($salaryText -match '\d+') { [int]$Matches[0] } else { $null }
+      [void]$items.Add([pscustomobject]@{
+        id = 'feishu-' + $item.record_id
+        sourceKey = 'feishu|' + $item.record_id
+        company = $company
+        position = $position
+        recordType = if ($recordType) { $recordType } elseif ($position) { '岗位明细' } else { '招聘公告' }
+        major = $industry
+        city = $city
+        category = $category
+        education = $education
+        startDate = $startDate
+        deadline = $deadline
+        salaryText = $salaryText
+        salaryMin = $salaryMin
+        source = 'my.feishu.cn'
+        publishedAt = $publishedAt
+        url = 'https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=' + $feishuTableId + '&view=' + $feishuViewId + '&record=' + $item.record_id
+        verified = $true
+        sourceType = 'feishu'
+      })
+    }
+    $pageToken = $response.data.page_token
+  } while ($response.data.has_more -and $pageToken)
+  Write-Host "Read $($items.Count) Feishu records."
+  return @($items)
+}
+
 function Get-JobTitle([string]$title, [string]$text) {
   $clean = [System.Net.WebUtility]::HtmlDecode($title).Trim()
   $clean = $clean -replace '\s*[-|｜].*$', ''
@@ -192,10 +293,12 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
   if ($record.company) { [void]$list.Add($record) }
 }
 
+$feishuRecords = @(Get-FeishuRecords)
 $existing = [System.IO.File]::ReadAllText($DataFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 $records = [System.Collections.Generic.List[object]]::new()
+foreach ($record in $feishuRecords) { [void]$records.Add($record) }
 foreach ($old in @($existing.records)) {
-  if ($old.company -and $old.url -and $old.sourceType -ne 'channel' -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
+  if ($old.company -and $old.url -and $old.sourceType -ne 'channel' -and $old.sourceType -ne 'feishu' -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
 }
 
 foreach ($source in $sources) {
