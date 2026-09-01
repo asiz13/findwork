@@ -12,6 +12,7 @@ $provinces = @('北京','上海','广东','江苏','浙江','湖北','湖南','�
 # These are first-party campus/recruitment domains. Search is used only to discover
 # detail pages; the saved link always points to the company or official source page.
 $sources = @(
+  @{ Company='飞书 · 27届校招表'; Type='外部渠道'; Domain='my.feishu.cn'; Home='https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=tbl1eASN11JYwTo8&view=vewJRfkcoh'; SourceType='channel' },
   @{ Company='华为技术有限公司'; Type='民企'; Domain='huawei.com'; Home='https://career.huawei.com/' },
   @{ Company='腾讯科技（深圳）有限公司'; Type='民企'; Domain='join.qq.com'; Home='https://join.qq.com/' },
   @{ Company='字节跳动有限公司'; Type='民企'; Domain='jobs.bytedance.com'; Home='https://jobs.bytedance.com/campus/' },
