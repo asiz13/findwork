@@ -128,6 +128,17 @@ function Get-Salary([string]$text) {
   return [pscustomobject]@{ Text = ''; Min = $null }
 }
 
+function Get-StableId([string]$source, [string]$company, [string]$position, [string]$city, [string]$url) {
+  $key = "$source|$company|$position|$city|$url".ToLowerInvariant().Trim()
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($key)
+    return 'job-' + (($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }) -join '')
+  } finally {
+    $sha.Dispose()
+  }
+}
+
 function Get-JobTitle([string]$title, [string]$text) {
   $clean = [System.Net.WebUtility]::HtmlDecode($title).Trim()
   $clean = $clean -replace '\s*[-|｜].*$', ''
@@ -159,7 +170,7 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
   $company = Get-Company $title $text $source
   if (!$company) { return }
   $record = [pscustomobject]@{
-    id = 'job-' + ([guid]::NewGuid().ToString('N'))
+    id = Get-StableId $source.Domain $company $position (Get-City $text) $url
     company = $company
     position = $position
     recordType = if ($position) { '岗位明细' } else { '招聘公告' }
@@ -176,6 +187,7 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
     url = $url
     verified = $verified
     sourceType = if ($source.SourceType) { $source.SourceType } else { 'company-official' }
+    sourceKey = "$($source.Domain)|$company|$position|$(Get-City $text)|$url"
   }
   if ($record.company) { [void]$list.Add($record) }
 }
