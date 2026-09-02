@@ -34,10 +34,10 @@ jobs:
       - name: Install Chromium
         run: npx --prefix mcp-server playwright install --with-deps chromium
 
-      - name: Collect public Feishu and JobKoi data
+      - name: Collect CSV seed and JobKoi public list
         env:
-          FEISHU_SOURCE_URL: 'https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=tbl1eASN11JYwTo8&view=vewJRfkcoh'
           JOBKOI_SOURCE_URL: 'https://jobkoi.cn/app/opportunities'
+          SEED_CSV_PATH: 'seed_jobs.csv'
         run: node mcp-server/public-sources.mjs
 
       - name: Inject data into the static workbench
