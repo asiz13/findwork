@@ -6,7 +6,7 @@ function response(body, status = 200, origin = ALLOWED_ORIGIN) {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       Vary: 'Origin'
     }
@@ -19,11 +19,11 @@ export default {
     if (origin && origin !== ALLOWED_ORIGIN) return response({ status: 'forbidden_origin' }, 403, origin);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: {
       'Access-Control-Allow-Origin': origin || ALLOWED_ORIGIN,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       Vary: 'Origin'
     }});
-    if (request.method !== 'POST' || new URL(request.url).pathname !== '/refresh') return response({ status: 'not_found' }, 404, origin || ALLOWED_ORIGIN);
+    if (!['GET', 'POST'].includes(request.method) || new URL(request.url).pathname !== '/refresh') return response({ status: 'not_found' }, 404, origin || ALLOWED_ORIGIN);
     if (!env.GITHUB_TOKEN || !env.GITHUB_REPOSITORY || !env.GITHUB_WORKFLOW_ID) return response({ status: 'error', message: 'Worker GitHub settings are incomplete.' }, 500, origin || ALLOWED_ORIGIN);
 
     const githubResponse = await fetch(`https://api.github.com/repos/${env.GITHUB_REPOSITORY}/actions/workflows/${env.GITHUB_WORKFLOW_ID}/dispatches`, {
