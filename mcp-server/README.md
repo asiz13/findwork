@@ -1,10 +1,8 @@
 # findwork public-source collector
 
-Production synchronization runs in GitHub Actions. The collector reads public Feishu and JobKoi data with a headless browser, then writes `recruitment_data.json`. The Cloudflare Worker only starts the GitHub workflow and never receives Feishu credentials.
+生产采集只使用仓库中的 `seed_jobs.csv` 和 JobKoi 公开岗位列表，不访问飞书，也不需要任何账号权限。采集器输出 `recruitment_data.json`，供 GitHub Pages 工作台使用。
 
-## Local verification
-
-From this directory:
+## 本地验证
 
 ```powershell
 npm install
@@ -12,4 +10,4 @@ npx playwright install chromium
 node public-sources.mjs
 ```
 
-This is only for debugging; production does not depend on the local computer. The collector keeps one record for each normalized company, position, and city combination. Feishu records take priority over company-official records, then JobKoi records.
+生产环境由 GitHub Actions 执行，不依赖本机。采集器会过滤非 2027 届、实习、已过期公告，并按公司、岗位、城市去重；链接优先保留企业官网或官方投递页。
