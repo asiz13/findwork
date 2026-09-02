@@ -1,23 +1,22 @@
 # 全国秋招信息工作台
 
-The generated `index.html` is deployed to GitHub Pages. The old scheduled GitHub update has been disabled; the workbench refresh flow uses the cloud sync service instead.
+The generated `index.html` is deployed to GitHub Pages. Public Feishu and JobKoi data are collected by GitHub Actions; the workbench refresh flow uses a small Cloudflare Worker to trigger that cloud task.
 
 Important: `update-wuhan.yml` must be uploaded to `.github/workflows/update-wuhan.yml`, not to the repository root. GitHub only recognizes workflow files inside `.github/workflows/`.
 
 ## GitHub setup
 
-1. Create a Feishu app and grant it read-only Bitable access.
-2. Add the app as a reader of the Feishu Base.
-3. Add these repository secrets under **Settings -> Secrets and variables -> Actions**:
-   - `FEISHU_APP_ID`
-   - `FEISHU_APP_SECRET`
-   - `FEISHU_APP_TOKEN`
-4. Under **Settings -> Pages**, set the source to **GitHub Actions**.
-5. Run **Actions -> Update nationwide recruitment data -> Run workflow** once to verify the configuration.
+1. Confirm the Feishu share link can be viewed and exported by a guest; no Feishu app or collaborator is required.
+2. Under **Settings -> Pages**, set the source to **GitHub Actions**.
+3. Deploy `cloudflare-worker/worker.js` and configure it as described in `cloudflare-worker/README.md`.
+4. Set `WORKFLOW_TRIGGER_URL` in `index.html` to the Worker `/refresh` URL.
+5. Run **Actions -> Update nationwide recruitment data -> Run workflow** once to verify the public sources.
 
-The table and view IDs are configured in `.github/workflows/update-wuhan.yml`. The collector uses the Feishu record ID as the stable key, so additions, edits, and deletions are reflected on the next run without duplicate rows.
+The table and view IDs are configured in `.github/workflows/update-wuhan.yml`. The collector uses Feishu record IDs when available and a normalized company/position/city key across both sources, so identical records are written only once. Feishu records take priority over JobKoi duplicates.
 
 The public Feishu page URL can be used by the cloud sync service only when guests are allowed to export Excel/CSV. If guest export is disabled, the Feishu Base owner must change that permission or provide an official API app.
+
+The workbench also has an **Import Feishu CSV** button. Use it when a CSV has been exported locally or the sync service is unavailable; the file is parsed in the browser and its records are written immediately to the nationwide job pool. Feishu rows are replaced as a snapshot, while manual and image-note records are preserved.
 
 ## CSV fallback
 

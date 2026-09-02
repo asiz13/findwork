@@ -1,6 +1,7 @@
 ﻿param(
   [string]$DataFile = (Join-Path $PSScriptRoot 'recruitment_data.json'),
-  [switch]$RequireFeishu
+  [switch]$RequireFeishu,
+  [string]$FeishuCsvFile = (Join-Path $PSScriptRoot 'feishu_export.csv')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -181,7 +182,7 @@ function Convert-FeishuDate([string]$value) {
 
 function Get-FeishuRecords {
   if (!$feishuAppId -or !$feishuAppSecret -or !$feishuAppToken) {
-    if ($RequireFeishu) { throw 'FEISHU_APP_ID, FEISHU_APP_SECRET and FEISHU_APP_TOKEN GitHub Secrets are required.' }
+    if ($RequireFeishu -and !(Test-Path -LiteralPath $FeishuCsvFile -PathType Leaf)) { throw 'FEISHU_APP_ID, FEISHU_APP_SECRET and FEISHU_APP_TOKEN GitHub Secrets are required, or upload feishu_export.csv.' }
     Write-Host 'Feishu API is not configured; continuing without Feishu records.'
     return @()
   }
@@ -240,6 +241,51 @@ function Get-FeishuRecords {
   return @($items)
 }
 
+function Get-FeishuCsvRecords([string]$csvFile) {
+  if (!(Test-Path -LiteralPath $csvFile -PathType Leaf)) { return @() }
+  $bytes = [System.IO.File]::ReadAllBytes($csvFile)
+  try {
+    $utf8 = [System.Text.UTF8Encoding]::new($false, $true)
+    $text = $utf8.GetString($bytes)
+  } catch {
+    $text = [System.Text.Encoding]::GetEncoding(936).GetString($bytes)
+  }
+  if (!$text.Trim()) { return @() }
+  $rows = @($text | ConvertFrom-Csv)
+  $items = [System.Collections.Generic.List[object]]::new()
+  foreach ($row in $rows) {
+    $company = Get-FeishuField $row @('公司名称','公司','单位名称','招聘单位','招聘企业','企业名称')
+    if (!$company) { continue }
+    $position = Get-FeishuField $row @('岗位名称','招聘岗位','职位名称','工作岗位','岗位')
+    $city = Get-FeishuField $row @('工作地点','工作城市','招聘城市','城市','工作地')
+    $recordId = Get-FeishuField $row @('record_id','recordId','记录ID','记录 id','ID','id')
+    $sourceKey = if ($recordId) { "feishu|$recordId" } else { "feishu-export|$company|$position|$city" }
+    $url = 'https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=' + $feishuTableId + '&view=' + $feishuViewId + $(if ($recordId) { '&record=' + [uri]::EscapeDataString($recordId) } else { '' })
+    [void]$items.Add([pscustomobject]@{
+      id = Get-StableId $sourceKey '' '' '' ''
+      sourceKey = $sourceKey
+      company = $company
+      position = $position
+      recordType = if (Get-FeishuField $row @('招聘类型','记录类型','类型')) { Get-FeishuField $row @('招聘类型','记录类型','类型') } elseif ($position) { '岗位明细' } else { '招聘公告' }
+      major = Get-FeishuField $row @('所属行业','行业','专业要求','所需专业','专业')
+      city = $city
+      category = Get-FeishuField $row @('企业性质','企业类型','单位性质','类别')
+      education = Get-FeishuField $row @('学历要求','学历','招聘对象','面向对象')
+      startDate = Convert-FeishuDate (Get-FeishuField $row @('报名开始','开始报名','网申开始','投递开始'))
+      deadline = Convert-FeishuDate (Get-FeishuField $row @('报名截止','截止时间','网申截止','投递截止'))
+      salaryText = Get-FeishuField $row @('工资','薪资','薪酬')
+      salaryMin = if ($salaryText -match '\d+') { [int]$Matches[0] } else { $null }
+      source = 'my.feishu.cn'
+      publishedAt = Convert-FeishuDate (Get-FeishuField $row @('发布时间','发布日期','公告日期','发布于'))
+      url = $url
+      verified = $true
+      sourceType = 'feishu-export'
+    })
+  }
+  Write-Host "Read $($items.Count) Feishu CSV records."
+  return @($items)
+}
+
 function Get-JobTitle([string]$title, [string]$text) {
   $clean = [System.Net.WebUtility]::HtmlDecode($title).Trim()
   $clean = $clean -replace '\s*[-|｜].*$', ''
@@ -294,11 +340,16 @@ function Add-DetailRecord($list, $source, [string]$url, [string]$title, [string]
 }
 
 $feishuRecords = @(Get-FeishuRecords)
+if (!$feishuRecords.Count -and (Test-Path -LiteralPath $FeishuCsvFile -PathType Leaf)) {
+  $feishuRecords = @(Get-FeishuCsvRecords $FeishuCsvFile)
+}
+$hasFeishuSource = $feishuRecords.Count -gt 0
+if ($RequireFeishu -and !$hasFeishuSource) { throw 'Feishu API returned no records and feishu_export.csv was not found or empty.' }
 $existing = [System.IO.File]::ReadAllText($DataFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
 $records = [System.Collections.Generic.List[object]]::new()
 foreach ($record in $feishuRecords) { [void]$records.Add($record) }
 foreach ($old in @($existing.records)) {
-  if ($old.company -and $old.url -and $old.sourceType -ne 'channel' -and $old.sourceType -ne 'feishu' -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
+  if ($old.company -and $old.url -and $old.sourceType -notin @('channel','feishu','feishu-export') -and $old.position -notmatch '校园招聘信息入口|招聘官网') { [void]$records.Add($old) }
 }
 
 foreach ($source in $sources) {

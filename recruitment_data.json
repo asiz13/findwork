@@ -1,5 +1,5 @@
 {
-    "generatedAt":  "2026-09-01T08:54:20.3407235+08:00",
+    "generatedAt":  "2026-09-02T08:03:35.2551124+08:00",
     "scope":  "全国",
     "notice":  "全国 2027 届校园招聘抓取：保留公司名明确的岗位明细和招聘公告，岗位未公布时留空；排除社会招聘、社招、实习和兼职；工资、专业、学历、城市、起止时间只在原公告明确写出时记录。官方官网优先，渠道网站用于发现线索。",
     "records":  [
@@ -23,7 +23,7 @@
                         "sourceType":  "company-official"
                     },
                     {
-                        "id":  "job-fb4464024cf94a2597906649405e1078",
+                        "id":  "job-187f7502797b9a9e60a70a3eea3b4a37b2d5ce99b7d4cbca8a9139ed8a8e2444",
                         "company":  "日邮物流",
                         "position":  "",
                         "recordType":  "招聘公告",
@@ -39,10 +39,11 @@
                         "publishedAt":  "",
                         "url":  "https://campus.51job.com/yusen/school.html",
                         "verified":  false,
-                        "sourceType":  "channel"
+                        "sourceType":  "channel",
+                        "sourceKey":  "yingjiesheng.com|日邮物流|||https://campus.51job.com/yusen/school.html"
                     },
                     {
-                        "id":  "job-f0ed0a63373d461ab4ca77c379a40171",
+                        "id":  "job-9317f8191cf1e9a791a944f66b916f31e0bb1ba3f41d0ca78c71eea6289bbc0d",
                         "company":  "中电二公司",
                         "position":  "",
                         "recordType":  "招聘公告",
@@ -58,29 +59,11 @@
                         "publishedAt":  "",
                         "url":  "https://xyzp.51job.com/cese2/",
                         "verified":  false,
-                        "sourceType":  "channel"
+                        "sourceType":  "channel",
+                        "sourceKey":  "yingjiesheng.com|中电二公司|||https://xyzp.51job.com/cese2/"
                     },
                     {
-                        "id":  "job-f40abfbbdea14a62995bd8febd85e3b5",
-                        "company":  "雅诗兰黛集团",
-                        "position":  "",
-                        "recordType":  "招聘公告",
-                        "major":  "",
-                        "city":  "",
-                        "category":  "综合渠道",
-                        "education":  "",
-                        "startDate":  "",
-                        "deadline":  "",
-                        "salaryText":  "",
-                        "salaryMin":  null,
-                        "source":  "yingjiesheng.com",
-                        "publishedAt":  "",
-                        "url":  "https://campus.51job.com/elccampus",
-                        "verified":  false,
-                        "sourceType":  "channel"
-                    },
-                    {
-                        "id":  "job-d53b0d6684ef459fa696941adc998955",
+                        "id":  "job-50239fadd44f8480fba6b3609c59aa7fff92a84a6b36fa266988ba5ba4512115",
                         "company":  "圣邦微电子",
                         "position":  "",
                         "recordType":  "招聘公告",
@@ -96,7 +79,8 @@
                         "publishedAt":  "",
                         "url":  "https://campus.51job.com/sgmicro2027",
                         "verified":  false,
-                        "sourceType":  "channel"
+                        "sourceType":  "channel",
+                        "sourceKey":  "51job.com|圣邦微电子|||https://campus.51job.com/sgmicro2027"
                     }
                 ]
 }
