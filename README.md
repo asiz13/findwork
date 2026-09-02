@@ -1,23 +1,18 @@
 # 全国秋招信息工作台
 
-The generated `index.html` is deployed to GitHub Pages. Public Feishu and JobKoi data are collected by GitHub Actions; the workbench refresh flow uses a small Cloudflare Worker to trigger that cloud task.
+工作台部署在 GitHub Pages。岗位数据由仓库中的 `seed_jobs.csv` 和 JobKoi 公开岗位列表生成，不使用飞书应用、飞书文档权限或 Render。
 
-Important: `update-wuhan.yml` must be uploaded to `.github/workflows/update-wuhan.yml`, not to the repository root. GitHub only recognizes workflow files inside `.github/workflows/`.
+## 云端刷新
 
-## GitHub setup
+1. GitHub Actions 使用 `mcp-server/public-sources.mjs` 读取 CSV，并逐页抓取 `https://jobkoi.cn/app/opportunities`。
+2. 采集器只保留 2027 届非实习记录，自动删除已过期公告。
+3. 相同公司、岗位、城市只保留一条，链接优先使用企业官网或官方投递页。
+4. 页面点击“刷新数据”调用 `cloudflare-worker/worker.js`，Worker 触发 `.github/workflows/update-wuhan.yml`。
 
-1. Confirm the Feishu share link can be viewed and exported by a guest; no Feishu app or collaborator is required.
-2. Under **Settings -> Pages**, set the source to **GitHub Actions**.
-3. Deploy `cloudflare-worker/worker.js` and configure it as described in `cloudflare-worker/README.md`.
-4. Set `WORKFLOW_TRIGGER_URL` in `index.html` to the Worker `/refresh` URL. It is intentionally blank until your Worker has a real URL.
-5. Run **Actions -> Update nationwide recruitment data -> Run workflow** once to verify the public sources.
+Worker 配置：`GITHUB_REPOSITORY=asiz13/findwork`、`GITHUB_WORKFLOW_ID=update-wuhan.yml`、`GITHUB_BRANCH=main`，并将 GitHub Token 只保存为 Worker Secret。页面中的 `WORKFLOW_TRIGGER_URL` 必须填写 Worker 的 `/refresh` 地址。
 
-The table and view IDs are configured in `.github/workflows/update-wuhan.yml`. The collector uses Feishu record IDs when available and a normalized company/position/city key across both sources, so identical records are written only once. Feishu records take priority over JobKoi duplicates.
+## 数据规则
 
-The public Feishu page URL can be used by the cloud sync service only when guests are allowed to export Excel/CSV. If guest export is disabled, the Feishu Base owner must change that permission or provide an official API app.
+`seed_jobs.csv` 是已导入的初始岗位快照。CSV 和 JobKoi 中的飞书、Lark、微信、企查查链接会被过滤；没有企业官网链接的记录使用 JobKoi 公开岗位列表作为来源入口。日期截止且早于当天的公告不会写入数据。
 
-The workbench also has an **Import Feishu CSV** button. Use it when a CSV has been exported locally or the sync service is unavailable; the file is parsed in the browser and its records are written immediately to the nationwide job pool. Feishu rows are replaced as a snapshot, while manual and image-note records are preserved.
-
-## CSV fallback
-
-If the Base owner cannot authorize an app, export the view from Feishu using **... -> Export -> Excel/CSV file**. Rename the exported CSV to `feishu_export.csv`, upload it to the repository root, and run the workflow manually. The workflow imports the complete CSV on every run, so the CSV is the source snapshot: replace it with a new export whenever the Feishu table changes. The CSV should include a company column such as `公司名称`; other recognized columns include `岗位名称`, `企业性质`, `所属行业`, `工作地点`, `学历要求`, `报名开始`, `报名截止`, and `薪资`.
+GitHub Pages 设置为 **GitHub Actions** 后，可在 **Actions -> Update nationwide recruitment data -> Run workflow** 手动验证一次。定时任务为每天北京时间 08:00。
