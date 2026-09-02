@@ -2,6 +2,8 @@ name: Update nationwide recruitment data
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
 
 permissions:
   contents: write
@@ -19,15 +21,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Collect and rebuild
-        shell: pwsh
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+
+      - name: Install public-source collector
+        run: npm ci --prefix mcp-server
+
+      - name: Install Chromium
+        run: npx --prefix mcp-server playwright install --with-deps chromium
+
+      - name: Collect public Feishu and JobKoi data
         env:
-          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
-          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
-          FEISHU_TABLE_ID: tbl1eASN11JYwTo8
-          FEISHU_VIEW_ID: vewJRfkcoh
-        run: ./collect_jobs.ps1 -RequireFeishu
+          FEISHU_SOURCE_URL: 'https://my.feishu.cn/wiki/UdAtwwZlJiULwskzEe5cSYJZnMe?table=tbl1eASN11JYwTo8&view=vewJRfkcoh'
+          JOBKOI_SOURCE_URL: 'https://jobkoi.cn/app/opportunities'
+        run: node mcp-server/public-sources.mjs
+
+      - name: Inject data into the static workbench
+        shell: pwsh
+        run: ./update_dashboard.ps1
 
       - name: Commit updated data
         shell: bash
