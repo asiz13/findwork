@@ -75,7 +75,8 @@ function csvRecords(rows) {
     const deadline = dateValue(csvValue(row, ['截止时间', '报名截止', '网申截止', '投递截止']));
     if (isExpired(deadline)) return [];
     const sourceKey = `csv|${company}|${position}|${city}`;
-    const url = officialUrl(csvValue(row, ['投递链接'])) || officialUrl(csvValue(row, ['相关公告'])) || jobkoiUrl;
+    const url = officialUrl(csvValue(row, ['投递链接'])) || officialUrl(csvValue(row, ['相关公告'])) || '';
+    const writtenTest = csvValue(row, ['笔试情况', '笔试', '是否笔试']);
     const category = csvValue(row, ['企业性质', '企业类型', '单位性质', '类别']);
     return [{
       id: stableId(sourceKey), sourceKey, company, position,
@@ -85,7 +86,8 @@ function csvRecords(rows) {
       education: csvValue(row, ['学历要求', '学历']), startDate: '', deadline,
       salaryText: '', salaryMin: null, source: 'CSV导入',
       publishedAt: dateValue(csvValue(row, ['更新时间', '发布时间', '发布日期'])), url,
-      verified: Boolean(officialUrl(csvValue(row, ['投递链接']))), sourceType: 'csv-import'
+      writtenTest, writtenTestSource: writtenTest ? 'CSV导入' : '',
+      verified: Boolean(url), sourceType: 'csv-import'
     }];
   });
 }
@@ -134,7 +136,7 @@ async function scrapeJobkoi(page) {
       if (!positions.length) positions.push('');
       const deadline = dateValue(cells[7]);
       if (isExpired(deadline)) continue;
-      const applyUrl = row.links.find(url => officialUrl(url)) || jobkoiUrl;
+      const applyUrl = row.links.find(url => officialUrl(url)) || '';
       for (const position of positions) {
         const city = text(cells[5]);
         const sourceKey = `jobkoi|${company}|${position}|${city}`;
@@ -144,7 +146,8 @@ async function scrapeJobkoi(page) {
           category: ({ 民营: '民企', '高校/科研院所': '事业单位', 合资: '合资' })[text(cells[3])] || text(cells[3]),
           education: '', startDate: dateValue(cells[6]), deadline,
           salaryText: '', salaryMin: null, source: 'jobkoi.cn', publishedAt: dateValue(cells[6]),
-          url: applyUrl, verified: applyUrl !== jobkoiUrl, sourceType: 'jobkoi'
+          url: applyUrl, writtenTest: '', writtenTestSource: '',
+          verified: Boolean(applyUrl), sourceType: 'jobkoi'
         });
       }
     }
