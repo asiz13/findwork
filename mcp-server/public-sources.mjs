@@ -107,6 +107,7 @@ async function readSeedRows() {
 async function scrapeJobkoi(page) {
   await page.goto(jobkoiUrl, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(4500);
+  await page.waitForFunction(() => /当前第\s*\d+\s*页，共\s*[\d,]+\s*页/.test(document.body.innerText), undefined, { timeout: 60000 });
   const records = [];
   let pagesRead = 0;
   let rowsRead = 0;
@@ -154,9 +155,23 @@ async function scrapeJobkoi(page) {
     if (currentPage >= totalPages) break;
     const next = page.getByRole('button', { name: '下一页', exact: true });
     if (await next.count() !== 1 || !(await next.isEnabled())) throw new Error(`JobKoi pagination stopped at page ${currentPage}.`);
-    const previousFirstRow = rows[0]?.text || '';
-    await next.click();
-    await page.waitForFunction(oldText => document.querySelector('table tbody tr')?.innerText !== oldText, previousFirstRow, { timeout: 15000 });
+    const expectedPage = currentPage + 1;
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        await next.click({ timeout: 20000 });
+        await page.waitForFunction(expected => {
+          const pageMatch = document.body.innerText.match(/当前第\s*(\d+)\s*页，共\s*[\d,]+\s*页/);
+          return pageMatch && Number(pageMatch[1]) === expected && Boolean(document.querySelector('table tbody tr'));
+        }, expectedPage, { timeout: 20000 });
+        lastError = undefined;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (attempt < 3) await page.waitForTimeout(attempt * 1500);
+      }
+    }
+    if (lastError) throw new Error('JobKoi page ' + expectedPage + ' did not finish loading after 3 attempts: ' + lastError.message);
   }
   if (!records.length) throw new Error('JobKoi returned no active 2027 campus records.');
   if (pagesRead !== totalPages) throw new Error(`JobKoi pagination incomplete: read ${pagesRead} of ${totalPages} pages.`);
@@ -192,6 +207,8 @@ if (process.env.SKIP_JOBKOI !== '1') {
     const result = await scrapeJobkoi(await context.newPage());
     jobkoiRecords = result.records;
     jobkoiStats = { pagesRead: result.pagesRead, totalPages: result.totalPages, rowsRead: result.rowsRead };
+  } catch (error) {
+    console.warn('JobKoi collection failed; continuing with CSV records: ' + error.message);
   } finally {
     await browser.close();
   }
